@@ -1,23 +1,96 @@
+---
+import '../styles/global.css';
+
+const { title = "Mes Brouillons", description = "Mini-essais scientifiques et simulations" } = Astro.props;
+---
+
 <!doctype html>
-<html lang="en">
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro Basics</title>
-	</head>
-	<body>
-		<slot />
-	</body>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="description" content={description} />
+    <title>{title}</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a href="/" class="logo">Mes Brouillons</a>
+        <nav>
+          <a href="/simulations">Simulations</a>
+          <a href="/a-propos">À propos</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>Me Brouillons — mini-essais scientifiques et simulations.</p>
+        <p><a href="https://substack.com" target="_blank" rel="noopener">Newsletter sur Substack</a></p>
+      </div>
+    </footer>
+  </body>
 </html>
 
-<style>
-	html,
-	body {
-		margin: 0;
-		width: 100%;
-		height: 100%;
-	}
+<style is:global>
+  .site-header {
+    border-bottom: 1px solid var(--color-grey-light);
+    padding: 1.5rem 0;
+  }
+
+  .header-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 960px;
+  }
+
+  .logo {
+    font-family: var(--font-serif);
+    font-size: 1.3rem;
+    color: var(--color-black);
+    border-bottom: none;
+    letter-spacing: 0.02em;
+  }
+
+  .logo:hover {
+    color: var(--color-red);
+  }
+
+  nav {
+    display: flex;
+    gap: 2rem;
+  }
+
+  nav a {
+    font-size: 0.95rem;
+    border-bottom: none;
+    color: var(--color-grey-dark);
+  }
+
+  nav a:hover {
+    color: var(--color-red);
+  }
+
+  main {
+    min-height: 60vh;
+    padding: 3rem 0 4rem;
+  }
+
+  .site-footer {
+    border-top: 1px solid var(--color-grey-light);
+    padding: 2rem 0;
+    text-align: center;
+  }
+
+  .site-footer p {
+    font-size: 0.85rem;
+    color: var(--color-grey-mid);
+    margin-bottom: 0.25rem;
+  }
 </style>

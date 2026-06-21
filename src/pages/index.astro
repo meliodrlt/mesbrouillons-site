@@ -1,11 +1,86 @@
 ---
-import Welcome from '../components/Welcome.astro';
 import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
-<Layout>
-	<Welcome />
+<Layout title="Mes Brouillons — Mini-essais scientifiques">
+  <section class="container hero">
+    <h1>Mes Brouillons</h1>
+    <p class="lead">
+      Des mini-essais scientifiques construits autour d'une idée à la fois,
+      accompagnés de simulations pour rendre tangible ce que les équations décrivent.
+    </p>
+  </section>
+
+  <section class="container feature">
+	<div class="sim-placeholder">
+	<img src="/images/simulation.gif" alt="Simulation comparant reproduction clonale et reproduction sexuée" />
+	</div>
+    </div>
+    <div class="feature-text">
+      <h2>Le Pari de la sexualité</h2>
+      <p>
+        Pourquoi la reproduction sexuée persiste malgré son coût démographique
+        — le pari de la diversité face à l'incertitude environnementale.
+      </p>
+      <a href="/simulations/le-pari-de-la-sexualite">Voir l'article →</a>
+    </div>
+  </section>
 </Layout>
+
+<style>
+  .hero {
+    text-align: center;
+    max-width: 600px;
+    margin: 2rem auto 5rem;
+  }
+
+  .hero h1 {
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .lead {
+    font-size: 1.15rem;
+    color: var(--color-grey-dark);
+  }
+
+  .feature {
+    max-width: 960px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  .sim-placeholder {
+    aspect-ratio: 4 / 3;
+    border: 1px solid var(--color-grey-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sim-placeholder img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+  .sim-placeholder span {
+    color: var(--color-grey-mid);
+    font-size: 0.9rem;
+  }
+
+  .feature-text h2 {
+    margin-bottom: 1rem;
+  }
+
+  .feature-text p {
+    margin-bottom: 1.5rem;
+  }
+
+  @media (max-width: 700px) {
+    .feature {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
