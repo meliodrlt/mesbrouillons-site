@@ -135,18 +135,18 @@
 
 <script is:inline>
 (function () {
-// ── Constantes ────────────────────────────────────────────────────────────
+//  Constantes 
 const L = 20, G = 100;
-const GEN_MS = 160, PAUSE_MS = 2000, FADE_MS = 380;
+const GEN_MS = 60, PAUSE_MS = 2000, FADE_MS = 380;
 const DOT_BASE = 55, DOT_SCALE = 55;
 
-// ── RNG ───────────────────────────────────────────────────────────────────
+//  RNG 
 function mkRng(seed) {
   let s = seed >>> 0;
   return () => { s = (Math.imul(1664525,s)+1013904223)>>>0; return s/4294967296; };
 }
 
-// ── Simulation Wright-Fisher ──────────────────────────────────────────────
+//  Simulation Wright-Fisher 
 function simulate(N, MU) {
   const rng = mkRng(42);
   let A = new Uint8Array(N*L), S = new Uint8Array(N*L);
@@ -167,7 +167,7 @@ function simulate(N, MU) {
   return { stA, stS };
 }
 
-// ── PCA ───────────────────────────────────────────────────────────────────
+//  PCA 
 function fitPCA(flat, N2) {
   const mu = new Float64Array(L);
   for (let i=0;i<N2;i++) for (let j=0;j<L;j++) mu[j]+=flat[i*L+j];
@@ -205,7 +205,7 @@ function project(flat,N,W) {
   return out;
 }
 
-// ── Clone maps & matching NN ──────────────────────────────────────────────
+//  Clone maps & matching NN 
 function toMap(flat,N,proj) {
   const m=new Map();
   for (let i=0;i<N;i++) {
@@ -231,7 +231,7 @@ function matchFrames(m0,m1) {
   return {matched,fadeOut,fadeIn:d1.filter((_,j)=>!used[j])};
 }
 
-// ── Pré-calcul ────────────────────────────────────────────────────────────
+//  Pré-calcul 
 function precompute(N,MU) {
   const {stA,stS}=simulate(N,MU);
   const fin=new Uint8Array(2*N*L); fin.set(stA[G]); fin.set(stS[G],N*L);
@@ -284,7 +284,7 @@ function renderMap(cv,map,xlim,ylim,fade) {
   }
 }
 
-// ── Machine à états ───────────────────────────────────────────────────────
+//  Machine à états 
 const cvA=document.getElementById('cv-a'),cvS=document.getElementById('cv-s');
 const genLabel=document.getElementById('gen-label');
 const btnPlay=document.getElementById('btn-play');
@@ -341,7 +341,7 @@ let curN=200,curMU=0.003;
 rebuild(curN,curMU);
 requestAnimationFrame(loop);
 
-// ── Contrôles ─────────────────────────────────────────────────────────────
+//  Contrôles 
 btnPlay.addEventListener('click',()=>{
   playing=!playing;if(playing)lastTs=null;
   iconPlay.style.display=playing?'none':'';
