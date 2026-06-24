@@ -1,0 +1,362 @@
+---
+// Simulation interactive Wright-Fisher — Le pari de la sexualité
+---
+
+<div class="psim">
+  <div class="psim__panels">
+    <div class="psim__panel">
+      <div class="psim__wrap">
+        <span class="psim__label">Asexuée</span>
+        <canvas id="cv-a"></canvas>
+      </div>
+    </div>
+    <div class="psim__panel">
+      <div class="psim__wrap">
+        <span class="psim__label">Sexuée</span>
+        <canvas id="cv-s"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="psim__bar">
+    <button class="psim__btn" id="btn-play" aria-label="Pause">
+      <svg id="icon-play"  viewBox="0 0 10 12" style="display:none"><polygon points="0,0 10,6 0,12"/></svg>
+      <svg id="icon-pause" viewBox="0 0 10 12"><rect x="0" y="0" width="3.5" height="12"/><rect x="6.5" y="0" width="3.5" height="12"/></svg>
+    </button>
+    <div class="psim__sliders">
+      <div class="psim__slider">
+        <div class="psim__slider-row">
+          <span>Population</span>
+          <strong id="val-n">200</strong>
+        </div>
+        <input type="range" id="sl-n" min="50" max="400" step="10" value="200">
+      </div>
+      <div class="psim__slider">
+        <div class="psim__slider-row">
+          <span>Mutations</span>
+          <strong id="val-mu">0,3 %</strong>
+        </div>
+        <input type="range" id="sl-mu" min="1" max="12" step="1" value="3">
+      </div>
+    </div>
+  </div>
+
+  <p class="psim__gen" id="gen-label">0 / 100 générations</p>
+</div>
+
+<style>
+  .psim {
+    width: 100%;
+    user-select: none;
+  }
+  .psim__panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+  .psim__panel { display: flex; flex-direction: column; }
+  .psim__wrap  { position: relative; width: 100%; }
+
+  .psim__label {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-black);
+    z-index: 2;
+    pointer-events: none;
+    font-family: var(--font-sans);
+  }
+  canvas {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Contrôles */
+  .psim__bar {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-top: 1.25rem;
+    flex-wrap: wrap;
+  }
+  .psim__btn {
+    flex-shrink: 0;
+    width: 34px; height: 34px;
+    border: 1px solid var(--color-black);
+    border-radius: 50%;
+    background: var(--color-white);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+    padding: 0;
+  }
+  .psim__btn:hover { background: var(--color-black); }
+  .psim__btn:hover svg { fill: var(--color-white); }
+  .psim__btn svg { fill: var(--color-black); width: 12px; height: 12px; transition: fill 0.15s; }
+
+  .psim__sliders { display: flex; gap: 1.75rem; flex: 1; flex-wrap: wrap; }
+  .psim__slider  { flex: 1; min-width: 140px; }
+  .psim__slider-row {
+    display: flex; justify-content: space-between;
+    font-size: 0.82rem; color: var(--color-grey-dark);
+    margin-bottom: 0.35rem;
+  }
+  .psim__slider-row strong { color: var(--color-black); }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%; height: 2px;
+    background: var(--color-grey-light);
+    border-radius: 1px; outline: none; cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 13px; height: 13px; border-radius: 50%;
+    background: var(--color-black); cursor: pointer;
+    transition: background 0.15s;
+  }
+  input[type="range"]:hover::-webkit-slider-thumb { background: var(--color-red); }
+  input[type="range"]::-moz-range-thumb {
+    width: 13px; height: 13px; border-radius: 50%;
+    background: var(--color-black); border: none;
+  }
+
+  .psim__gen {
+    font-size: 0.78rem;
+    color: var(--color-grey-mid);
+    text-align: center;
+    margin-top: 0.8rem;
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+
+<script is:inline>
+(function () {
+// ── Constantes ────────────────────────────────────────────────────────────
+const L = 20, G = 100;
+const GEN_MS = 160, PAUSE_MS = 2000, FADE_MS = 380;
+const DOT_BASE = 55, DOT_SCALE = 55;
+
+// ── RNG ───────────────────────────────────────────────────────────────────
+function mkRng(seed) {
+  let s = seed >>> 0;
+  return () => { s = (Math.imul(1664525,s)+1013904223)>>>0; return s/4294967296; };
+}
+
+// ── Simulation Wright-Fisher ──────────────────────────────────────────────
+function simulate(N, MU) {
+  const rng = mkRng(42);
+  let A = new Uint8Array(N*L), S = new Uint8Array(N*L);
+  const buf = new Uint8Array(N*L);
+  const stA = [A.slice()], stS = [S.slice()];
+  for (let g = 0; g < G; g++) {
+    for (let i = 0; i < N; i++) {
+      const p = (rng()*N)|0;
+      for (let j = 0; j < L; j++) buf[i*L+j] = A[p*L+j]^(rng()<MU?1:0);
+    }
+    A = buf.slice(); stA.push(A);
+    for (let i = 0; i < N; i++) {
+      const p1=(rng()*N)|0, p2=(rng()*N)|0;
+      for (let j = 0; j < L; j++) buf[i*L+j]=(rng()<.5?S[p1*L+j]:S[p2*L+j])^(rng()<MU?1:0);
+    }
+    S = buf.slice(); stS.push(S);
+  }
+  return { stA, stS };
+}
+
+// ── PCA ───────────────────────────────────────────────────────────────────
+function fitPCA(flat, N2) {
+  const mu = new Float64Array(L);
+  for (let i=0;i<N2;i++) for (let j=0;j<L;j++) mu[j]+=flat[i*L+j];
+  for (let j=0;j<L;j++) mu[j]/=N2;
+  const X = new Float64Array(N2*L);
+  for (let i=0;i<N2;i++) for (let j=0;j<L;j++) X[i*L+j]=flat[i*L+j]-mu[j];
+  const cov = new Float64Array(L*L);
+  for (let i=0;i<N2;i++) for (let j=0;j<L;j++) for (let k=j;k<L;k++) {
+    const v=X[i*L+j]*X[i*L+k]; cov[j*L+k]+=v; if(k!==j) cov[k*L+j]+=v;
+  }
+  for (let jk=0;jk<L*L;jk++) cov[jk]/=N2;
+  function evec(excl) {
+    let v=new Float64Array(L).fill(1/Math.sqrt(L));
+    for (let it=0;it<120;it++) {
+      const w=new Float64Array(L);
+      for (let j=0;j<L;j++) for (let k=0;k<L;k++) w[j]+=cov[j*L+k]*v[k];
+      if (excl) { const d=excl.reduce((s,e,j)=>s+e*w[j],0); for (let j=0;j<L;j++) w[j]-=d*excl[j]; }
+      let norm=0; for (let j=0;j<L;j++) norm+=w[j]*w[j]; norm=Math.sqrt(norm);
+      if (norm<1e-12) break;
+      const nv=w.map(x=>x/norm);
+      let diff=0; for (let j=0;j<L;j++) diff+=(nv[j]-v[j])**2; v=nv; if(diff<1e-15) break;
+    }
+    return v;
+  }
+  const v1=evec(null), v2=evec(v1);
+  return {mu,v1,v2};
+}
+function project(flat,N,W) {
+  const out=new Float64Array(N*2);
+  for (let i=0;i<N;i++) {
+    let x=0,y=0;
+    for (let j=0;j<L;j++){const c=flat[i*L+j]-W.mu[j];x+=c*W.v1[j];y+=c*W.v2[j];}
+    out[i*2]=x;out[i*2+1]=y;
+  }
+  return out;
+}
+
+// ── Clone maps & matching NN ──────────────────────────────────────────────
+function toMap(flat,N,proj) {
+  const m=new Map();
+  for (let i=0;i<N;i++) {
+    let k=0; for (let j=0;j<L;j++) k|=flat[i*L+j]<<j;
+    if (!m.has(k)) m.set(k,{x:proj[i*2],y:proj[i*2+1],n:0}); m.get(k).n++;
+  }
+  return m;
+}
+function matchFrames(m0,m1) {
+  const d0=[...m0.values()],d1=[...m1.values()];
+  const used=new Uint8Array(d1.length);
+  const matched=[],fadeOut=[];
+  for (let i=0;i<d0.length;i++) {
+    let bj=-1,bd=Infinity;
+    for (let j=0;j<d1.length;j++) {
+      if (used[j]) continue;
+      const dx=d0[i].x-d1[j].x,dy=d0[i].y-d1[j].y,dist=dx*dx+dy*dy;
+      if (dist<bd){bd=dist;bj=j;}
+    }
+    if (bj>=0){matched.push({a:d0[i],b:d1[bj]});used[bj]=1;}
+    else fadeOut.push(d0[i]);
+  }
+  return {matched,fadeOut,fadeIn:d1.filter((_,j)=>!used[j])};
+}
+
+// ── Pré-calcul ────────────────────────────────────────────────────────────
+function precompute(N,MU) {
+  const {stA,stS}=simulate(N,MU);
+  const fin=new Uint8Array(2*N*L); fin.set(stA[G]); fin.set(stS[G],N*L);
+  const W=fitPCA(fin,2*N);
+  let xmn=Infinity,xmx=-Infinity,ymn=Infinity,ymx=-Infinity;
+  for (let g=0;g<=G;g++) for (const pop of [stA[g],stS[g]]) {
+    const pr=project(pop,N,W);
+    for (let i=0;i<N;i++){
+      if(pr[i*2]<xmn)xmn=pr[i*2];if(pr[i*2]>xmx)xmx=pr[i*2];
+      if(pr[i*2+1]<ymn)ymn=pr[i*2+1];if(pr[i*2+1]>ymx)ymx=pr[i*2+1];
+    }
+  }
+  const pad=0.07*Math.max(xmx-xmn,ymx-ymn,0.01);
+  const xlim=[xmn-pad,xmx+pad],ylim=[ymn-pad,ymx+pad];
+  const frames=[];
+  for (let g=0;g<=G;g++){
+    const pA=project(stA[g],N,W),pS=project(stS[g],N,W);
+    frames.push({mA:toMap(stA[g],N,pA),mS:toMap(stS[g],N,pS)});
+  }
+  const transitions=[];
+  for (let g=0;g<G;g++) transitions.push({tA:matchFrames(frames[g].mA,frames[g+1].mA),tS:matchFrames(frames[g].mS,frames[g+1].mS)});
+  return {frames,transitions,xlim,ylim};
+}
+
+// ── Rendu ─────────────────────────────────────────────────────────────────
+function renderTrans(cv,tr,t,xlim,ylim,fade) {
+  const W=cv.width,H=cv.height,ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  const toX=v=>((v-xlim[0])/(xlim[1]-xlim[0]))*(W-56)+28;
+  const toY=v=>H-(((v-ylim[0])/(ylim[1]-ylim[0]))*(H-56)+28);
+  function dot(x,y,n,a){
+    if(a<.01)return;
+    const r=Math.sqrt((DOT_BASE+DOT_SCALE*(n-1))/Math.PI);
+    ctx.fillStyle=`rgba(10,10,10,${Math.min(a,1)})`;
+    ctx.beginPath();ctx.arc(toX(x),toY(y),r,0,2*Math.PI);ctx.fill();
+  }
+  for (const {a,b} of tr.matched) dot(a.x+(b.x-a.x)*t,a.y+(b.y-a.y)*t,a.n+(b.n-a.n)*t,.88*fade);
+  for (const a of tr.fadeOut)  dot(a.x,a.y,a.n,.88*(1-t)*fade);
+  for (const b of tr.fadeIn)   dot(b.x,b.y,b.n,.88*t*fade);
+}
+function renderMap(cv,map,xlim,ylim,fade) {
+  const W=cv.width,H=cv.height,ctx=cv.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  const toX=v=>((v-xlim[0])/(xlim[1]-xlim[0]))*(W-56)+28;
+  const toY=v=>H-(((v-ylim[0])/(ylim[1]-ylim[0]))*(H-56)+28);
+  ctx.fillStyle=`rgba(10,10,10,${.88*fade})`;
+  for (const {x,y,n} of map.values()){
+    const r=Math.sqrt((DOT_BASE+DOT_SCALE*(n-1))/Math.PI);
+    ctx.beginPath();ctx.arc(toX(x),toY(y),r,0,2*Math.PI);ctx.fill();
+  }
+}
+
+// ── Machine à états ───────────────────────────────────────────────────────
+const cvA=document.getElementById('cv-a'),cvS=document.getElementById('cv-s');
+const genLabel=document.getElementById('gen-label');
+const btnPlay=document.getElementById('btn-play');
+const iconPlay=document.getElementById('icon-play'),iconPause=document.getElementById('icon-pause');
+[cvA,cvS].forEach(cv=>{cv.width=720;cv.height=600;});
+
+let state=null,genF=0,phase='playing',phaseTs=0,lastTs=null,playing=true;
+
+function drawFrame(gf,fade){
+  if(!state)return;
+  if(gf>=G){
+    const {mA,mS}=state.frames[G];
+    renderMap(cvA,mA,state.xlim,state.ylim,fade);
+    renderMap(cvS,mS,state.xlim,state.ylim,fade);
+    genLabel.textContent=`${G} / ${G} générations`;return;
+  }
+  const g0=Math.floor(gf),t=gf-g0,{tA,tS}=state.transitions[g0];
+  renderTrans(cvA,tA,t,state.xlim,state.ylim,fade);
+  renderTrans(cvS,tS,t,state.xlim,state.ylim,fade);
+  genLabel.textContent=`${Math.round(gf)} / ${G} générations`;
+}
+
+function loop(ts){
+  requestAnimationFrame(loop);
+  if(!state)return;
+  if(lastTs===null)lastTs=ts;
+  const dt=Math.min(ts-lastTs,80);lastTs=ts;
+  if(!playing)return;
+  switch(phase){
+    case 'playing':
+      genF+=dt/GEN_MS;
+      if(genF>=G){genF=G;phase='paused';phaseTs=ts;}
+      drawFrame(Math.min(genF,G-.001),1);break;
+    case 'paused':
+      drawFrame(G-.001,1);
+      if(ts-phaseTs>=PAUSE_MS){phase='fade-out';phaseTs=ts;}break;
+    case 'fade-out':{
+      const p=Math.min((ts-phaseTs)/FADE_MS,1);
+      drawFrame(G-.001,1-p);
+      if(p>=1){phase='fade-in';phaseTs=ts;genF=0;}break;}
+    case 'fade-in':{
+      const p=Math.min((ts-phaseTs)/FADE_MS,1);
+      drawFrame(0,p);
+      if(p>=1){phase='playing';lastTs=ts;}break;}
+  }
+}
+
+function rebuild(N,MU){
+  phase='playing';genF=0;lastTs=null;playing=false;
+  setTimeout(()=>{state=precompute(N,MU);playing=true;},0);
+}
+
+let curN=200,curMU=0.003;
+rebuild(curN,curMU);
+requestAnimationFrame(loop);
+
+// ── Contrôles ─────────────────────────────────────────────────────────────
+btnPlay.addEventListener('click',()=>{
+  playing=!playing;if(playing)lastTs=null;
+  iconPlay.style.display=playing?'none':'';
+  iconPause.style.display=playing?'':'none';
+});
+const slN=document.getElementById('sl-n'),slMu=document.getElementById('sl-mu');
+const valN=document.getElementById('val-n'),valMu=document.getElementById('val-mu');
+let deb=null;
+function onSlider(){
+  curN=parseInt(slN.value);curMU=parseInt(slMu.value)/1000;
+  valN.textContent=curN;
+  valMu.textContent=`${(curMU*100).toFixed(1).replace('.',',')} %`;
+  clearTimeout(deb);deb=setTimeout(()=>rebuild(curN,curMU),200);
+}
+slN.addEventListener('input',onSlider);
+slMu.addEventListener('input',onSlider);
+})();
+</script>

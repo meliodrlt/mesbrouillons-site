@@ -1,0 +1,144 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PopulationSim from '../../components/PopulationSim.astro';
+---
+
+<Layout
+  title="Simulations — Mes Brouillons"
+  description="Des modèles mathématiques rendus interactifs : explorez la dynamique évolutive, les systèmes complexes, la biophysique."
+>
+  <div class="page-intro container">
+    <h1>Simulations</h1>
+    <p>
+      Chaque simulation illustre le mécanisme central d'un article.
+      Les paramètres sont ajustables pour explorer la dynamique par soi-même.
+    </p>
+  </div>
+
+  <section class="category">
+    <div class="container">
+      <h2 class="category-title">Évolution</h2>
+    </div>
+
+    <div class="sim-entry">
+      <div class="sim-canvas">
+        <PopulationSim />
+      </div>
+      <div class="sim-info">
+        <h3>Le pari de la sexualité</h3>
+        <p>
+          Pourquoi la reproduction sexuée — plus lente, plus coûteuse — persiste-t-elle
+          face à la reproduction clonale ? La réponse tient en un mot : <em>diversité</em>.
+        </p>
+        <p>
+          Chaque point est un génotype. Sa taille encode le nombre d'individus
+          identiques. Observez comment la population sexuée explose en une nébuleuse
+          de points uniques, là où la population clonale se consolide en quelques
+          clusters dominants.
+        </p>
+        <div class="sim-meta">
+          <span>Population <strong>N</strong></span>
+          <span>Taux de mutation <strong>μ</strong></span>
+          <span>100 générations</span>
+        </div>
+        <a class="sim-link" href="https://melio.substack.com" target="_blank" rel="noopener">
+          Lire l'article →
+        </a>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  /* ── En-tête de page ── */
+  .page-intro {
+    margin-bottom: 4rem;
+  }
+  .page-intro h1 {
+    margin-bottom: 0.75rem;
+  }
+  .page-intro p {
+    max-width: 520px;
+  }
+
+  /* ── Catégorie ── */
+  .category {
+    margin-bottom: 5rem;
+  }
+  .category-title {
+    font-size: 0.78rem;
+    font-family: var(--font-sans);
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-grey-mid);
+    margin-bottom: 2.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-grey-light);
+  }
+
+  /* ── Entrée simulation ── */
+  .sim-entry {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3.5rem;
+    align-items: start;
+  }
+
+  /* ── Texte droite ── */
+  .sim-info h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .sim-info p {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--color-grey-dark);
+    margin-bottom: 1rem;
+  }
+  .sim-info em {
+    font-style: italic;
+    color: var(--color-black);
+  }
+
+  .sim-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    margin: 1.5rem 0;
+  }
+  .sim-meta span {
+    font-size: 0.78rem;
+    color: var(--color-grey-mid);
+    font-family: var(--font-sans);
+  }
+  .sim-meta strong {
+    color: var(--color-black);
+    font-weight: 600;
+  }
+
+  .sim-link {
+    display: inline-block;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--color-black);
+    border-bottom: 1.5px solid var(--color-black);
+    padding-bottom: 1px;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .sim-link:hover {
+    color: var(--color-red);
+    border-color: var(--color-red);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 720px) {
+    .sim-entry {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+  }
+</style>
