@@ -1,0 +1,336 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import PopulationSim from '../../components/PopulationSim.astro';
+import katex from 'katex';
+
+const d = (tex: string) => katex.renderToString(tex, { displayMode: true,  throwOnError: false });
+const m = (tex: string) => katex.renderToString(tex, { displayMode: false, throwOnError: false });
+
+const eqWF       = d(String.raw`P\!\left(\tilde{p} = \frac{k}{N}\right) = \binom{N}{k}\, p^k (1-p)^{N-k}`);
+const eqClonal   = d(String.raw`g_{i,j}^{(t+1)} \;=\; g_{\,\pi_i,\, j}^{(t)} \;\oplus\; \mathcal{B}(\mu) \qquad \pi_i \overset{\text{iid}}{\sim} \mathcal{U}\{1,\ldots,N\}`);
+const eqSexual   = d(String.raw`g_{i,j}^{(t+1)} \;=\; \begin{cases} g_{p_1,\,j}^{(t)} & \text{si } U_{ij} < \tfrac{1}{2} \\[6pt] g_{p_2,\,j}^{(t)} & \text{sinon} \end{cases} \;\oplus\; \mathcal{B}(\mu) \qquad p_1, p_2 \overset{\text{iid}}{\sim} \mathcal{U}\{1,\ldots,N\}`);
+const eqPCA      = d(String.raw`x_i = \mathbf{g}_i \cdot \mathbf{w}_1 \qquad y_i = \mathbf{g}_i \cdot \mathbf{w}_2`);
+
+const iN  = m('N');
+const iMu = m(String.raw`\mu`);
+const iL  = m('L = 20');
+const iG  = m(String.raw`\mathbf{g}_i = (g_{i,1}, \ldots, g_{i,L}) \in \{0,1\}^L`);
+const ip  = m('p');
+const ipp = m(String.raw`\tilde{p}`);
+const iNN = m(String.raw`N \to \infty`);
+---
+
+<Layout title="Le pari de la sexualité — Mes Brouillons">
+  <Fragment slot="head">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" />
+  </Fragment>
+
+  <article class="page">
+
+    <header class="page-header">
+      <span class="label">Évolution</span>
+      <h1>Le pari de la sexualité</h1>
+    </header>
+
+    <!-- PROBLÈME -->
+    <section class="section">
+      <p>
+        La reproduction sexuée a un coût démographique évident : dans une population sexuée,
+        seules les femelles produisent des descendants, là où une population clonale entière
+        le fait. À ressources égales, une population clonale devrait croître deux fois plus vite.
+        Pourtant, la sexualité a persisté dans presque tout le monde vivant.
+      </p>
+      <p>
+        Le pari de la sexualité, c'est que la diversité génétique qu'elle engendre compense
+        ce désavantage : face à un environnement changeant, il suffit qu'une fraction de la
+        population soit adaptée à la nouvelle condition pour que l'ensemble survive.
+      </p>
+      <a class="ext-link" href="https://mesbrouillons.substack.com/p/le-pari-de-la-sexualite" target="_blank" rel="noopener">
+        Lire l'article →
+      </a>
+    </section>
+
+    <!-- SIMULATION -->
+    <section class="section section--sim">
+      <PopulationSim />
+    </section>
+
+    <!-- INTERPRÉTATION -->
+    <section class="section">
+      <h2>Lire la simulation</h2>
+      <p>
+        Chaque point représente un génotype unique — une combinaison particulière de caractères
+        génétiques. Sa taille encode le nombre d'individus portant exactement ce génotype.
+        Les deux axes sont calculés par une ACP : ils représentent les deux directions qui
+        capturent le plus de variation génétique dans la population. Plus les points sont
+        dispersés, plus la population est génétiquement diverse.
+      </p>
+
+      <h2>Ce que montre la simulation</h2>
+      <p>
+        La population clonale converge progressivement vers quelques génotypes dominants :
+        la dérive génétique élimine les variants rares et, sans recombinaison, rien ne les
+        régénère. La population sexuée maintient au contraire une nébuleuse de génotypes
+        distincts — la recombinaison redistribue les variants à chaque génération.
+      </p>
+
+      <h2>Effet des paramètres</h2>
+      <p>
+        <strong>Population <Fragment set:html={iN} /> :</strong> une petite population amplifie
+        la dérive génétique — même la population sexuée perd de la diversité. Augmenter
+        <Fragment set:html={iN} /> atténue cet effet et rend le contraste entre les deux
+        régimes plus net.
+      </p>
+      <p>
+        <strong>Mutations <Fragment set:html={iMu} /> :</strong> un taux élevé injecte de la
+        diversité dans les deux régimes. Mais sans recombinaison, les mutations s'accumulent
+        indépendamment dans chaque lignée clonale sans jamais se combiner — la diversité
+        reste limitée.
+      </p>
+    </section>
+
+    <!-- MODÈLE -->
+    <section class="section">
+
+      <h2>Le modèle de Wright-Fisher</h2>
+      <p>
+        Proposé indépendamment par Sewall Wright et Ronald Fisher dans les années 1930, le
+        modèle de Wright-Fisher est le modèle de référence en génétique des populations.
+        Son idée centrale : à chaque génération, les <Fragment set:html={iN} /> individus de
+        la nouvelle génération sont tirés <em>au hasard avec remise</em> dans la génération
+        précédente. Ce tirage aléatoire produit de la <strong>dérive génétique</strong> —
+        des fluctuations de fréquence qui ne sont pas dues à la sélection, mais au hasard du
+        tirage dans une population finie.
+      </p>
+      <p>
+        Dans sa formulation classique (un seul locus, deux allèles), si l'allèle A est présent
+        à la fréquence <Fragment set:html={ip} /> en génération <em>t</em>, sa fréquence
+        <Fragment set:html={ipp} /> en génération <em>t + 1</em> suit une loi binomiale :
+      </p>
+      <Fragment set:html={eqWF} />
+      <p>
+        Plus <Fragment set:html={iN} /> est grand, plus la distribution est concentrée autour
+        de <Fragment set:html={ip} /> — la dérive est faible. À la limite <Fragment set:html={iNN} />,
+        les fréquences ne fluctuent plus du tout.
+      </p>
+
+      <h2>Application au pari de la sexualité</h2>
+      <p>
+        On étend le modèle à un génome binaire de <Fragment set:html={iL} /> positions
+        indépendantes. Chaque individu est représenté par un vecteur
+        <Fragment set:html={iG} />.
+        On simule deux populations en parallèle — clonale et sexuée — soumises aux mêmes
+        paramètres <Fragment set:html={iN} /> et <Fragment set:html={iMu} />.
+      </p>
+
+      <p><strong>Reproduction clonale</strong> — chaque individu hérite d'un seul parent tiré au hasard, avec mutations indépendantes par position :</p>
+      <Fragment set:html={eqClonal} />
+
+      <p><strong>Reproduction sexuée</strong> — chaque position est héritée de l'un ou l'autre de deux parents tirés au hasard (ségrégation mendélienne indépendante par locus) :</p>
+      <Fragment set:html={eqSexual} />
+
+      <div class="notation">
+        <ul>
+          <li><Fragment set:html={m(String.raw`g_{i,j}^{(t)}`)} /> — valeur (0 ou 1) de la position <Fragment set:html={m('j')} /> du génome de l'individu <Fragment set:html={m('i')} /> à la génération <Fragment set:html={m('t')} /></li>
+          <li><Fragment set:html={m(String.raw`\mathcal{B}(\mu)`)} /> — loi de Bernoulli : vaut 1 avec probabilité <Fragment set:html={iMu} /> (mutation), 0 sinon</li>
+          <li><Fragment set:html={m(String.raw`\oplus`)} /> — ou exclusif : inverse la valeur en cas de mutation, la conserve sinon</li>
+          <li><Fragment set:html={m(String.raw`\mathcal{U}\{1,\ldots,N\}`)} /> — tirage uniforme parmi les <Fragment set:html={iN} /> individus</li>
+        </ul>
+      </div>
+
+      <h2>Visualisation — projection ACP</h2>
+      <p>
+        Les génomes vivent dans un espace de dimension <Fragment set:html={iL} />. Pour les
+        visualiser en 2D, on utilise une <strong>Analyse en Composantes Principales (ACP)</strong> :
+        on cherche les deux directions dans l'espace génétique qui capturent le maximum de
+        variance entre individus. Ces deux directions deviennent les axes du graphique.
+      </p>
+      <p>
+        Concrètement, on calcule la matrice de covariance des génotypes sur la population
+        finale (clonale + sexuée réunies), puis on en extrait les deux premiers vecteurs
+        propres <Fragment set:html={m(String.raw`\mathbf{w}_1`)} /> et <Fragment set:html={m(String.raw`\mathbf{w}_2`)} />.
+        Chaque individu est projeté selon :
+      </p>
+      <Fragment set:html={eqPCA} />
+      <p>
+        Cette projection est calculée une seule fois sur la génération finale et appliquée à
+        toutes les générations : l'espace de référence ne bouge pas au cours de l'animation.
+      </p>
+
+      <h2>Paramètres</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Symbole</th>
+            <th>Nom</th>
+            <th>Défaut</th>
+            <th>Plage</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><Fragment set:html={m('N')} /></td>
+            <td>Taille de population</td>
+            <td>200</td>
+            <td>50 – 400</td>
+            <td>Nombre d'individus par régime de reproduction</td>
+          </tr>
+          <tr>
+            <td><Fragment set:html={iMu} /></td>
+            <td>Taux de mutation</td>
+            <td>0,3 %</td>
+            <td>0,1 % – 1,2 %</td>
+            <td>Probabilité de mutation par position et par génération</td>
+          </tr>
+          <tr>
+            <td><Fragment set:html={m('L')} /></td>
+            <td>Longueur du génome</td>
+            <td>20</td>
+            <td>—</td>
+            <td>Nombre de positions binaires (fixe)</td>
+          </tr>
+          <tr>
+            <td><Fragment set:html={m('G')} /></td>
+            <td>Durée</td>
+            <td>100</td>
+            <td>—</td>
+            <td>Nombre de générations simulées (fixe)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>Limites</h2>
+      <ul class="limits">
+        <li>
+          <strong>Pas de sélection.</strong> Le modèle isole l'effet de la recombinaison.
+          Dans la réalité, sélection et recombinaison agissent simultanément — et leur
+          interaction est au cœur des débats actuels sur le maintien de la sexualité.
+        </li>
+        <li>
+          <strong>Génome simplifié.</strong> Les vrais génomes ont des interactions entre
+          gènes (épistasie) et des structures chromosomiques que le modèle ignore. Les loci
+          indépendants surestiment la diversité potentielle.
+        </li>
+        <li>
+          <strong>Environnement implicite.</strong> Le modèle montre que la sexualité
+          <em>produit</em> de la diversité — mais ne simule pas le changement environnemental
+          qui en ferait un avantage sélectif réel.
+        </li>
+      </ul>
+
+    </section>
+
+  </article>
+</Layout>
+
+<style>
+  .page {
+    max-width: 840px;
+    margin: 0 auto;
+    padding: 0 1.5rem 6rem;
+  }
+
+  .page-header {
+    padding: 3.5rem 0 3rem;
+    border-bottom: 1px solid var(--color-grey-light);
+    margin-bottom: 3.5rem;
+  }
+
+  .label {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--color-grey-mid);
+    margin-bottom: 0.6rem;
+  }
+
+  .page-header h1 { margin: 0; }
+
+  .section {
+    margin-bottom: 4rem;
+  }
+
+  .section--sim {
+    margin-bottom: 4rem;
+  }
+
+  .section h2 {
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-grey-dark);
+    margin: 2.5rem 0 0.85rem;
+  }
+
+  .section h2:first-child { margin-top: 0; }
+
+  .section p {
+    font-size: 0.95rem;
+    line-height: 1.8;
+    margin-bottom: 0.9rem;
+    color: var(--color-grey-dark);
+  }
+
+  .section p strong { color: var(--color-black); }
+
+  .ext-link {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-black);
+    border-bottom-color: var(--color-black);
+    border-bottom-width: 1.5px;
+  }
+  .ext-link:hover { color: var(--color-red); border-color: var(--color-red); }
+
+  /* ── KaTeX display ── */
+  :global(.katex-display) {
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  /* ── Notation box ── */
+  .notation {
+    background: var(--color-grey-light);
+    padding: 1rem 1.25rem;
+    margin: 1.25rem 0 1.5rem;
+  }
+
+  .notation ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .notation li {
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--color-grey-dark);
+    padding-left: 0.75rem;
+    border-left: 2px solid var(--color-grey-mid);
+  }
+
+  /* ── Limites ── */
+  .limits {
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .limits li {
+    font-size: 0.92rem;
+    line-height: 1.75;
+    color: var(--color-grey-dark);
+  }
+
+  .limits li strong { color: var(--color-black); }
+</style>

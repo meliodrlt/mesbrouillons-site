@@ -12,13 +12,16 @@ const { title = "Mes Brouillons", description = "Mini-essais scientifiques et si
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="description" content={description} />
     <title>{title}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <slot name="head" />
   </head>
   <body>
     <header class="site-header">
       <div class="container header-inner">
         <a href="/" class="logo">Mes Brouillons</a>
         <nav>
-          <a href="/simulations">Simulations</a>
           <a href="/a-propos">À propos</a>
         </nav>
       </div>
@@ -30,8 +33,8 @@ const { title = "Mes Brouillons", description = "Mini-essais scientifiques et si
 
     <footer class="site-footer">
       <div class="container">
-        <p>Me Brouillons — mini-essais scientifiques et simulations.</p>
-        <p><a href="https://substack.com" target="_blank" rel="noopener">Newsletter sur Substack</a></p>
+        <p>Mes Brouillons — Apprendre en public.</p>
+        <p><a href="https://mesbrouillons.substack.com" target="_blank" rel="noopener">Newsletter</a></p>
       </div>
     </footer>
   </body>
