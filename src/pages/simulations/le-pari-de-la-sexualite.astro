@@ -6,18 +6,56 @@ import katex from 'katex';
 const d = (tex: string) => katex.renderToString(tex, { displayMode: true,  throwOnError: false });
 const m = (tex: string) => katex.renderToString(tex, { displayMode: false, throwOnError: false });
 
-const eqWF       = d(String.raw`P\!\left(\tilde{p} = \frac{k}{N}\right) = \binom{N}{k}\, p^k (1-p)^{N-k}`);
-const eqClonal   = d(String.raw`g_{i,j}^{(t+1)} \;=\; g_{\,\pi_i,\, j}^{(t)} \;\oplus\; \mathcal{B}(\mu) \qquad \pi_i \overset{\text{iid}}{\sim} \mathcal{U}\{1,\ldots,N\}`);
-const eqSexual   = d(String.raw`g_{i,j}^{(t+1)} \;=\; \begin{cases} g_{p_1,\,j}^{(t)} & \text{si } U_{ij} < \tfrac{1}{2} \\[6pt] g_{p_2,\,j}^{(t)} & \text{sinon} \end{cases} \;\oplus\; \mathcal{B}(\mu) \qquad p_1, p_2 \overset{\text{iid}}{\sim} \mathcal{U}\{1,\ldots,N\}`);
-const eqPCA      = d(String.raw`x_i = \mathbf{g}_i \cdot \mathbf{w}_1 \qquad y_i = \mathbf{g}_i \cdot \mathbf{w}_2`);
+/* ── Équations display ── */
+
+const eqWF = d(String.raw`P\!\left(\tilde{p} = \frac{k}{N}\right) = \binom{N}{k}\, p^k (1-p)^{N-k}`);
+
+const eqClonal = d(String.raw`g_{e,\,l}^{\,(t+1)} \;=\; g_{p,\,l}^{\,(t)} \;\oplus\; B_l \qquad p \sim \mathcal{U}\{1,\ldots,N\}`);
+
+const eqSexual = d(String.raw`g_{e,\,l}^{\,(t+1)} \;=\; \begin{cases} g_{p_1,\,l}^{\,(t)} & \text{si } C_l = 0 \\[6pt] g_{p_2,\,l}^{\,(t)} & \text{si } C_l = 1 \end{cases} \;\oplus\; B_l \qquad p_1, p_2 \sim \mathcal{U}\{1,\ldots,N\}`);
+
+const eqMutRate = d(String.raw`\mathbb{E}[\text{mutations par enfant}] = \mu \times L = 0{,}003 \times 20 = 0{,}06`);
+
+const eqRecombi = d(String.raw`2^k \text{ combinaisons possibles si les deux parents diffèrent sur } k \text{ loci}`);
+
+const eqDataMatrix = d(String.raw`\mathbf{G} = \begin{pmatrix} g_{1,1} & g_{1,2} & \cdots & g_{1,L} \\ g_{2,1} & g_{2,2} & \cdots & g_{2,L} \\ \vdots & \vdots & \ddots & \vdots \\ g_{N,1} & g_{N,2} & \cdots & g_{N,L} \end{pmatrix} \in \{0,1\}^{N \times L}`);
+
+const eqMean = d(String.raw`\bar{g}_l = \frac{1}{N} \sum_{e=1}^{N} g_{e,\,l}`);
+
+const eqCenter = d(String.raw`\tilde{g}_{e,\,l} = g_{e,\,l} - \bar{g}_l`);
+
+const eqCov = d(String.raw`\Sigma_{l,\,m} = \frac{1}{N} \sum_{e=1}^{N} \tilde{g}_{e,\,l} \;\tilde{g}_{e,\,m}`);
+
+const eqCovMatrix = d(String.raw`\mathbf{\Sigma} = \frac{1}{N}\,\tilde{\mathbf{G}}^\top \tilde{\mathbf{G}} = \begin{pmatrix} \Sigma_{1,1} & \Sigma_{1,2} & \cdots & \Sigma_{1,L} \\ \Sigma_{2,1} & \Sigma_{2,2} & \cdots & \Sigma_{2,L} \\ \vdots & \vdots & \ddots & \vdots \\ \Sigma_{L,1} & \Sigma_{L,2} & \cdots & \Sigma_{L,L} \end{pmatrix} \in \mathbb{R}^{L \times L}`);
+
+const eqEigen = d(String.raw`\mathbf{\Sigma}\,\mathbf{v}_k = \lambda_k\,\mathbf{v}_k`);
+
+const eqProj = d(String.raw`x_e = \sum_{l=1}^{L} \tilde{g}_{e,\,l}\; v_{1,l} \qquad y_e = \sum_{l=1}^{L} \tilde{g}_{e,\,l}\; v_{2,l}`);
+
+const eqPipeline = d(String.raw`\underbrace{\mathbf{G}}_{N \times L} \;\xrightarrow{\text{centrer}}\; \underbrace{\tilde{\mathbf{G}}}_{N \times L} \;\xrightarrow{\text{covariance}}\; \underbrace{\mathbf{\Sigma}}_{L \times L} \;\xrightarrow{\text{v. propres}}\; \underbrace{\mathbf{v}_1, \mathbf{v}_2}_{\text{2 directions}} \;\xrightarrow[\text{données brutes}]{\text{projeter sur}}\; \underbrace{(x_e,\, y_e)}_{N \text{ points}}`);
+
+/* ── Inline math ── */
 
 const iN  = m('N');
 const iMu = m(String.raw`\mu`);
-const iL  = m('L = 20');
-const iG  = m(String.raw`\mathbf{g}_i = (g_{i,1}, \ldots, g_{i,L}) \in \{0,1\}^L`);
+const iL  = m('L');
+const iLval = m('L = 20');
+const iG  = m(String.raw`\mathbf{g}_e = (g_{e,1}, \ldots, g_{e,L}) \in \{0,1\}^L`);
 const ip  = m('p');
 const ipp = m(String.raw`\tilde{p}`);
 const iNN = m(String.raw`N \to \infty`);
+const iBl = m(String.raw`B_l \sim \text{Bernoulli}(\mu)`);
+const iCl = m(String.raw`C_l \sim \text{Bernoulli}(0{,}5)`);
+const iXOR = m(String.raw`\oplus`);
+const iSigma = m(String.raw`\mathbf{\Sigma}`);
+const iv1 = m(String.raw`\mathbf{v}_1`);
+const iv2 = m(String.raw`\mathbf{v}_2`);
+const iNxL = m(String.raw`N \times L`);
+const iLxL = m(String.raw`L \times L`);
+const iSigmaLM = m(String.raw`\Sigma_{l,m}`);
+const iSigmaLL = m(String.raw`\Sigma_{l,l}`);
+const iLambda = m(String.raw`\lambda_k`);
+const iTwoL = m(String.raw`2^L = 1\,048\,576`);
 ---
 
 <Layout title="Le pari de la sexualité — Mes Brouillons">
@@ -32,7 +70,7 @@ const iNN = m(String.raw`N \to \infty`);
       <h1>Le pari de la sexualité</h1>
     </header>
 
-    <!-- PROBLÈME -->
+    <!-- ═══════════════ PROBLÈME ═══════════════ -->
     <section class="section">
       <p>
         La reproduction sexuée a un coût démographique évident : dans une population sexuée,
@@ -50,12 +88,12 @@ const iNN = m(String.raw`N \to \infty`);
       </a>
     </section>
 
-    <!-- SIMULATION -->
+    <!-- ═══════════════ SIMULATION ═══════════════ -->
     <section class="section section--sim">
       <PopulationSim />
     </section>
 
-    <!-- INTERPRÉTATION -->
+    <!-- ═══════════════ LECTURE ═══════════════ -->
     <section class="section">
       <h2>Lire la simulation</h2>
       <p>
@@ -68,39 +106,47 @@ const iNN = m(String.raw`N \to \infty`);
 
       <h2>Ce que montre la simulation</h2>
       <p>
+        Les deux populations partent du même point. Au début, seules les mutations introduisent
+        de la nouveauté — lentement, pour les deux. Mais dès que de petites différences
+        apparaissent, la recombinaison sexuée les combine et la diversité explose.
+      </p>
+      <p>
         La population clonale converge progressivement vers quelques génotypes dominants :
         la dérive génétique élimine les variants rares et, sans recombinaison, rien ne les
         régénère. La population sexuée maintient au contraire une nébuleuse de génotypes
         distincts — la recombinaison redistribue les variants à chaque génération.
       </p>
-
-      <h2>Effet des paramètres</h2>
-      <p>
-        <strong>Population <Fragment set:html={iN} /> :</strong> une petite population amplifie
-        la dérive génétique — même la population sexuée perd de la diversité. Augmenter
-        <Fragment set:html={iN} /> atténue cet effet et rend le contraste entre les deux
-        régimes plus net.
-      </p>
-      <p>
-        <strong>Mutations <Fragment set:html={iMu} /> :</strong> un taux élevé injecte de la
-        diversité dans les deux régimes. Mais sans recombinaison, les mutations s'accumulent
-        indépendamment dans chaque lignée clonale sans jamais se combiner — la diversité
-        reste limitée.
-      </p>
     </section>
 
-    <!-- MODÈLE -->
+    <!-- ═══════════════ WRIGHT-FISHER ═══════════════ -->
     <section class="section">
 
       <h2>Le modèle de Wright-Fisher</h2>
       <p>
         Proposé indépendamment par Sewall Wright et Ronald Fisher dans les années 1930, le
         modèle de Wright-Fisher est le modèle de référence en génétique des populations.
-        Son idée centrale : à chaque génération, les <Fragment set:html={iN} /> individus de
+        Son principe : à chaque génération, les <Fragment set:html={iN} /> individus de
         la nouvelle génération sont tirés <em>au hasard avec remise</em> dans la génération
-        précédente. Ce tirage aléatoire produit de la <strong>dérive génétique</strong> —
-        des fluctuations de fréquence qui ne sont pas dues à la sélection, mais au hasard du
-        tirage dans une population finie.
+        précédente. Puis la génération précédente disparaît.
+      </p>
+      <p>
+        C'est une <strong>chaîne de Markov</strong> : l'état de la population à la
+        génération <Fragment set:html={m('t+1')} /> ne dépend que de l'état à la
+        génération <Fragment set:html={m('t')} />, jamais des générations antérieures.
+        Tout le passé est encodé dans le présent — la mémoire est inutile.
+      </p>
+      <p>
+        Trois règles définissent le modèle :
+      </p>
+      <ol class="rules">
+        <li><strong>Taille fixe</strong> — toujours <Fragment set:html={iN} /> individus, jamais plus, jamais moins.</li>
+        <li><strong>Tirage uniforme avec remise</strong> — chaque individu a la même probabilité <Fragment set:html={m('1/N')} /> d'être choisi comme parent. Un même individu peut être parent de plusieurs enfants, ou d'aucun.</li>
+        <li><strong>Générations non chevauchantes</strong> — on remplace tout le monde d'un coup.</li>
+      </ol>
+      <p>
+        Ce tirage aléatoire produit de la <strong>dérive génétique</strong> — des fluctuations
+        de fréquence qui ne sont pas dues à la sélection, mais au hasard du tirage dans une
+        population finie.
       </p>
       <p>
         Dans sa formulation classique (un seul locus, deux allèles), si l'allèle A est présent
@@ -114,47 +160,215 @@ const iNN = m(String.raw`N \to \infty`);
         les fréquences ne fluctuent plus du tout.
       </p>
 
-      <h2>Application au pari de la sexualité</h2>
+      <!-- ── GÉNOME ── -->
+      <h2>Représentation du génome</h2>
       <p>
-        On étend le modèle à un génome binaire de <Fragment set:html={iL} /> positions
-        indépendantes. Chaque individu est représenté par un vecteur
+        On étend le modèle à un génome binaire de <Fragment set:html={iLval} /> loci
+        indépendants. Chaque individu est représenté par un vecteur :
         <Fragment set:html={iG} />.
+        Chaque locus porte l'une de deux variantes possibles (allèle 0 ou allèle 1).
+        L'espace des génotypes possibles a une taille de <Fragment set:html={iTwoL} /> combinaisons.
         On simule deux populations en parallèle — clonale et sexuée — soumises aux mêmes
         paramètres <Fragment set:html={iN} /> et <Fragment set:html={iMu} />.
       </p>
 
-      <p><strong>Reproduction clonale</strong> — chaque individu hérite d'un seul parent tiré au hasard, avec mutations indépendantes par position :</p>
+      <!-- ── ASEXUÉE ── -->
+      <h2>Reproduction clonale</h2>
+      <p>
+        Chaque enfant <Fragment set:html={m('e')} /> hérite d'un seul parent
+        <Fragment set:html={m('p')} /> tiré au hasard. Son génome est copié locus par locus,
+        avec une probabilité <Fragment set:html={iMu} /> de mutation à chaque position :
+      </p>
       <Fragment set:html={eqClonal} />
 
-      <p><strong>Reproduction sexuée</strong> — chaque position est héritée de l'un ou l'autre de deux parents tirés au hasard (ségrégation mendélienne indépendante par locus) :</p>
+      <div class="notation">
+        <ul>
+          <li><Fragment set:html={m(String.raw`g_{p,\,l}^{\,(t)}`)} /> — valeur du locus <Fragment set:html={m('l')} /> chez le parent <Fragment set:html={m('p')} /> à la génération <Fragment set:html={m('t')} /> (ce qu'on copie)</li>
+          <li><Fragment set:html={m(String.raw`B_l \sim \text{Bernoulli}(\mu)`)} /> — tirage aléatoire : vaut 1 avec probabilité <Fragment set:html={iMu} /> (mutation), 0 sinon</li>
+          <li><Fragment set:html={m(String.raw`g_{e,\,l}^{\,(t+1)}`)} /> — valeur du locus <Fragment set:html={m('l')} /> chez l'enfant <Fragment set:html={m('e')} /> à la génération <Fragment set:html={m('t+1')} /> (le résultat)</li>
+        </ul>
+      </div>
+
+      <p>
+        L'opérateur <Fragment set:html={iXOR} /> (XOR, ou exclusif) combine la valeur du parent
+        avec le tirage de mutation. Si <Fragment set:html={m('B_l = 0')} /> (pas de mutation),
+        la valeur reste inchangée. Si <Fragment set:html={m('B_l = 1')} /> (mutation), la valeur
+        s'inverse :
+      </p>
+
+      <table class="xor-table">
+        <thead>
+          <tr>
+            <th>Valeur du parent</th>
+            <th><Fragment set:html={m('B_l')} /></th>
+            <th>Résultat</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>0</td><td>0</td><td>0</td><td class="xor-label">copie du parent</td></tr>
+          <tr><td>0</td><td>1</td><td>1</td><td class="xor-label">mutation</td></tr>
+          <tr><td>1</td><td>0</td><td>1</td><td class="xor-label">copie du parent</td></tr>
+          <tr><td>1</td><td>1</td><td>0</td><td class="xor-label">mutation</td></tr>
+        </tbody>
+      </table>
+
+      <p>Avec <Fragment set:html={m(String.raw`\mu = 0{,}003`)} /> :</p>
+      <Fragment set:html={eqMutRate} />
+      <p>
+        En moyenne 0,06 mutation par enfant par génération — la grande majorité des enfants
+        sont des copies parfaites de leur parent. C'est le seul mécanisme de diversification
+        dans la population clonale.
+      </p>
+
+      <!-- ── SEXUÉE ── -->
+      <h2>Reproduction sexuée</h2>
+      <p>
+        Chaque enfant <Fragment set:html={m('e')} /> hérite de <strong>deux</strong> parents
+        <Fragment set:html={m('p_1')} /> et <Fragment set:html={m('p_2')} /> tirés
+        indépendamment. Pour chaque locus, l'enfant reçoit la valeur de l'un ou l'autre
+        parent (tirage à 50/50), puis la mutation s'applique de la même façon :
+      </p>
       <Fragment set:html={eqSexual} />
 
       <div class="notation">
         <ul>
-          <li><Fragment set:html={m(String.raw`g_{i,j}^{(t)}`)} /> — valeur (0 ou 1) de la position <Fragment set:html={m('j')} /> du génome de l'individu <Fragment set:html={m('i')} /> à la génération <Fragment set:html={m('t')} /></li>
-          <li><Fragment set:html={m(String.raw`\mathcal{B}(\mu)`)} /> — loi de Bernoulli : vaut 1 avec probabilité <Fragment set:html={iMu} /> (mutation), 0 sinon</li>
-          <li><Fragment set:html={m(String.raw`\oplus`)} /> — ou exclusif : inverse la valeur en cas de mutation, la conserve sinon</li>
-          <li><Fragment set:html={m(String.raw`\mathcal{U}\{1,\ldots,N\}`)} /> — tirage uniforme parmi les <Fragment set:html={iN} /> individus</li>
+          <li><Fragment set:html={m(String.raw`C_l \sim \text{Bernoulli}(0{,}5)`)} /> — pile ou face équitable, indépendant à chaque locus : décide quel parent est hérité</li>
+          <li><Fragment set:html={m(String.raw`B_l \sim \text{Bernoulli}(\mu)`)} /> — mutation, identique au cas clonal</li>
         </ul>
       </div>
 
-      <h2>Visualisation — projection ACP</h2>
       <p>
-        Les génomes vivent dans un espace de dimension <Fragment set:html={iL} />. Pour les
-        visualiser en 2D, on utilise une <strong>Analyse en Composantes Principales (ACP)</strong> :
-        on cherche les deux directions dans l'espace génétique qui capturent le maximum de
-        variance entre individus. Ces deux directions deviennent les axes du graphique.
+        La seule différence avec le cas clonal est ce qui se passe <em>avant</em> le
+        <Fragment set:html={iXOR} /> : copier un parent vs piocher locus par locus entre deux.
+        La mutation est identique dans les deux cas.
       </p>
       <p>
-        Concrètement, on calcule la matrice de covariance des génotypes sur la population
-        finale (clonale + sexuée réunies), puis on en extrait les deux premiers vecteurs
-        propres <Fragment set:html={m(String.raw`\mathbf{w}_1`)} /> et <Fragment set:html={m(String.raw`\mathbf{w}_2`)} />.
-        Chaque individu est projeté selon :
+        Mais l'effet est considérable. Si les deux parents diffèrent sur
+        <Fragment set:html={m('k')} /> loci, la recombinaison peut produire :
       </p>
-      <Fragment set:html={eqPCA} />
+      <Fragment set:html={eqRecombi} />
       <p>
-        Cette projection est calculée une seule fois sur la génération finale et appliquée à
-        toutes les générations : l'espace de référence ne bouge pas au cours de l'animation.
+        Exemple : <Fragment set:html={m('p_1')} /> et <Fragment set:html={m('p_2')} /> diffèrent
+        sur 5 loci → l'enfant est une combinaison parmi <Fragment set:html={m('2^5 = 32')} />
+        possibles, tirée au hasard — sans même une seule mutation. La mutation allume des
+        étincelles, la recombinaison les propage.
+      </p>
+
+    </section>
+
+    <!-- ═══════════════ PCA ═══════════════ -->
+    <section class="section">
+
+      <h2>Visualisation — Analyse en composantes principales</h2>
+      <p>
+        Les génomes vivent dans un espace de dimension <Fragment set:html={iLval} />.
+        Pour les visualiser en 2D, on utilise une <strong>Analyse en Composantes
+        Principales (ACP)</strong> : on cherche les deux directions dans l'espace génétique
+        qui capturent le maximum de variance entre individus. Le processus suit cinq étapes.
+      </p>
+
+      <!-- étape 1 -->
+      <h2>1 — Les données brutes</h2>
+      <p>
+        Chaque individu est une ligne, chaque locus une colonne. La matrice
+        <Fragment set:html={m(String.raw`\mathbf{G}`)} /> a <Fragment set:html={iN} /> lignes
+        et <Fragment set:html={iL} /> colonnes :
+      </p>
+      <Fragment set:html={eqDataMatrix} />
+      <p>
+        Dans notre cas : <Fragment set:html={m('N = 200')} /> individus,
+        <Fragment set:html={iLval} /> loci. On veut projeter ces 200 points d'un espace
+        à 20 dimensions vers un plan en 2 dimensions, en perdant le moins d'information
+        possible.
+      </p>
+
+      <!-- étape 2 -->
+      <h2>2 — Centrer les données</h2>
+      <p>
+        On calcule la moyenne de chaque locus sur toute la population, puis on la soustrait :
+      </p>
+      <Fragment set:html={eqMean} />
+      <Fragment set:html={eqCenter} />
+      <p>
+        On ne mesure plus la valeur absolue de chaque individu, mais comment il s'écarte
+        de la population à chaque locus.
+      </p>
+
+      <!-- étape 3 -->
+      <h2>3 — Matrice de covariance</h2>
+      <p>
+        On passe d'une matrice <Fragment set:html={iNxL} /> (<Fragment set:html={m('200 \\times 20')} />)
+        à une matrice <Fragment set:html={iLxL} /> (<Fragment set:html={m('20 \\times 20')} />).
+        On perd l'identité des individus, mais on garde les relations statistiques entre loci :
+        quand le locus <Fragment set:html={m('l')} /> varie, est-ce que le locus
+        <Fragment set:html={m('m')} /> a tendance à varier aussi ?
+      </p>
+      <Fragment set:html={eqCov} />
+      <Fragment set:html={eqCovMatrix} />
+      <p>
+        <Fragment set:html={iSigmaLM} /> positif : les deux loci varient dans le même sens.
+        Négatif : ils s'opposent. Nul : aucune relation.
+        La diagonale <Fragment set:html={iSigmaLL} /> est la variance du locus
+        <Fragment set:html={m('l')} /> (combien il varie dans la population).
+        La matrice est toujours symétrique : <Fragment set:html={m(String.raw`\Sigma_{l,m} = \Sigma_{m,l}`)} />.
+      </p>
+
+      <!-- étape 4 -->
+      <h2>4 — Trouver les meilleures directions</h2>
+      <p>
+        On cherche les directions dans l'espace des 20 loci sur lesquelles les individus,
+        une fois projetés, sont le plus dispersés (variance maximale). Ce sont les
+        <strong>vecteurs propres</strong> de <Fragment set:html={iSigma} /> :
+      </p>
+      <Fragment set:html={eqEigen} />
+      <p>
+        Chaque vecteur propre <Fragment set:html={m(String.raw`\mathbf{v}_k`)} /> est une
+        direction dans l'espace des 20 loci. La valeur propre <Fragment set:html={iLambda} />
+        associée est la quantité de variance capturée par cette direction — c'est la variance
+        des individus projetés dessus. On garde les deux vecteurs propres associés aux deux
+        plus grandes valeurs propres : <Fragment set:html={iv1} /> et <Fragment set:html={iv2} />.
+      </p>
+
+      <!-- étape 5 -->
+      <h2>5 — Retour aux données brutes</h2>
+      <p>
+        La matrice de covariance a servi à trouver les directions. Maintenant on revient à la
+        matrice originale <Fragment set:html={m(String.raw`\mathbf{G}`)} />
+        (<Fragment set:html={m('200 \\times 20')} />) et on projette chaque individu sur ces
+        deux directions. C'est un produit scalaire : on multiplie les 20 écarts de l'individu
+        par les 20 poids du vecteur propre, et on somme.
+      </p>
+      <Fragment set:html={eqProj} />
+      <p>
+        Le couple <Fragment set:html={m('(x_e,\\, y_e)')} /> est la position de l'individu
+        <Fragment set:html={m('e')} /> dans le plan 2D de la visualisation.
+        200 individus → 200 points.
+      </p>
+      <Fragment set:html={eqPipeline} />
+      <p>
+        La projection est calculée une seule fois sur la génération finale (clonale + sexuée
+        réunies) et appliquée à toutes les générations : l'espace de référence ne bouge pas
+        au cours de l'animation.
+      </p>
+
+    </section>
+
+    <!-- ═══════════════ PARAMÈTRES & LIMITES ═══════════════ -->
+    <section class="section">
+
+      <h2>Effet des paramètres</h2>
+      <p>
+        <strong>Population <Fragment set:html={iN} /> :</strong> une petite population amplifie
+        la dérive génétique — même la population sexuée perd de la diversité. Augmenter
+        <Fragment set:html={iN} /> atténue cet effet et rend le contraste entre les deux
+        régimes plus net.
+      </p>
+      <p>
+        <strong>Mutations <Fragment set:html={iMu} /> :</strong> un taux élevé injecte de la
+        diversité dans les deux régimes. Mais sans recombinaison, les mutations s'accumulent
+        indépendamment dans chaque lignée clonale sans jamais se combiner — la diversité
+        reste limitée.
       </p>
 
       <h2>Paramètres</h2>
@@ -181,14 +395,14 @@ const iNN = m(String.raw`N \to \infty`);
             <td>Taux de mutation</td>
             <td>0,3 %</td>
             <td>0,1 % – 1,2 %</td>
-            <td>Probabilité de mutation par position et par génération</td>
+            <td>Probabilité de mutation par locus et par génération</td>
           </tr>
           <tr>
             <td><Fragment set:html={m('L')} /></td>
             <td>Longueur du génome</td>
             <td>20</td>
             <td>—</td>
-            <td>Nombre de positions binaires (fixe)</td>
+            <td>Nombre de loci binaires (fixe)</td>
           </tr>
           <tr>
             <td><Fragment set:html={m('G')} /></td>
@@ -203,14 +417,28 @@ const iNN = m(String.raw`N \to \infty`);
       <h2>Limites</h2>
       <ul class="limits">
         <li>
-          <strong>Pas de sélection.</strong> Le modèle isole l'effet de la recombinaison.
-          Dans la réalité, sélection et recombinaison agissent simultanément — et leur
-          interaction est au cœur des débats actuels sur le maintien de la sexualité.
+          <strong>Pas de sélection.</strong> Tous les individus ont la même probabilité d'être
+          tirés comme parents. Aucun génotype n'est « meilleur » qu'un autre. Le modèle isole
+          l'effet pur de la recombinaison sur la diversité : même sans pression environnementale,
+          la sexualité diversifie plus vite.
         </li>
         <li>
-          <strong>Génome simplifié.</strong> Les vrais génomes ont des interactions entre
-          gènes (épistasie) et des structures chromosomiques que le modèle ignore. Les loci
-          indépendants surestiment la diversité potentielle.
+          <strong>Haploïde, pas diploïde.</strong> Chaque individu porte un seul exemplaire de
+          chaque locus, pas deux. Il n'y a donc pas de dominance ou de récessivité entre allèles.
+        </li>
+        <li>
+          <strong>Recombinaison uniforme.</strong> Chaque locus est tiré indépendamment entre les
+          deux parents (50/50). En réalité, la recombinaison se fait par blocs via crossing-over,
+          pas locus par locus.
+        </li>
+        <li>
+          <strong>Pas de structure sexuée.</strong> Les deux parents sont tirés au hasard dans toute
+          la population — pas de distinction mâle/femelle, pas de choix de partenaire.
+        </li>
+        <li>
+          <strong>Génome simplifié.</strong> <Fragment set:html={iLval} /> loci binaires est très
+          petit (un génome réel en compte des milliers à des millions). Les loci indépendants
+          ignorent les interactions entre gènes (épistasie) et les structures chromosomiques.
         </li>
         <li>
           <strong>Environnement implicite.</strong> Le modèle montre que la sexualité
@@ -316,6 +544,51 @@ const iNN = m(String.raw`N \to \infty`);
     color: var(--color-grey-dark);
     padding-left: 0.75rem;
     border-left: 2px solid var(--color-grey-mid);
+  }
+
+  /* ── Rules list ── */
+  .rules {
+    padding-left: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin: 0.5rem 0 1rem;
+  }
+
+  .rules li {
+    font-size: 0.92rem;
+    line-height: 1.75;
+    color: var(--color-grey-dark);
+  }
+
+  .rules li strong { color: var(--color-black); }
+
+  /* ── XOR table ── */
+  .xor-table {
+    margin: 1rem 0 1.5rem;
+    font-size: 0.88rem;
+  }
+
+  .xor-table th {
+    font-weight: 600;
+    color: var(--color-grey-dark);
+    text-align: center;
+    padding: 0.5rem 1rem;
+    border-bottom: 1.5px solid var(--color-grey-mid);
+  }
+
+  .xor-table td {
+    text-align: center;
+    padding: 0.45rem 1rem;
+    border-bottom: 0.5px solid var(--color-grey-light);
+    color: var(--color-grey-dark);
+  }
+
+  .xor-label {
+    text-align: left !important;
+    font-size: 0.82rem;
+    color: var(--color-grey-mid);
+    font-style: italic;
   }
 
   /* ── Limites ── */
